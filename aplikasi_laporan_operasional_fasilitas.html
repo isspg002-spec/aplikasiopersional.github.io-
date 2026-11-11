@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Laporan Operasional Fasilitas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            border-bottom: 2px solid #2563eb;
+            color: #2563eb;
+            font-weight: 600;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900 leading-tight">FM Operational Reports</h1>
+                        <p class="text-xs text-slate-500">Cleaning, Gardening & Pest Control Log</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs Main -->
+                <div class="hidden md:flex space-x-1 items-center">
+                    <button onclick="switchCategory('cleaning')" id="nav-cleaning" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 bg-blue-50 text-blue-700">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> Cleaning
+                    </button>
+                    <button onclick="switchCategory('gardening')" id="nav-gardening" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-2">
+                        <i data-lucide="flower-2" class="w-4 h-4"></i> Gardening
+                    </button>
+                    <button onclick="switchCategory('pestcontrol')" id="nav-pestcontrol" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-2">
+                        <i data-lucide="bug" class="w-4 h-4"></i> Pest Control
+                    </button>
+                    <button onclick="switchCategory('dashboard')" id="nav-dashboard" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-2 border-l border-slate-200 ml-2 pl-3">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard & Riwayat
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1">
+            <button onclick="switchCategory('cleaning'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-md font-medium text-blue-700 bg-blue-50 flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> Cleaning
+            </button>
+            <button onclick="switchCategory('gardening'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-md font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+                <i data-lucide="flower-2" class="w-4 h-4"></i> Gardening
+            </button>
+            <button onclick="switchCategory('pestcontrol'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-md font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+                <i data-lucide="bug" class="w-4 h-4"></i> Pest Control
+            </button>
+            <button onclick="switchCategory('dashboard'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-md font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100 pt-2">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard & Riwayat
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner Info Modal/Toast Notification Container -->
+        <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+        <!-- VIEW 1: CLEANING -->
+        <section id="view-cleaning" class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="sparkles" class="text-blue-600"></i> Operational Cleaning
+                    </h2>
+                    <p class="text-slate-500 text-sm">Input data pembersihan periodik dan temuan kerusakan fasilitas.</p>
+                </div>
+                <!-- Sub Menu Tabs -->
+                <div class="flex bg-slate-200 p-1 rounded-lg w-fit">
+                    <button onclick="switchSubTab('cleaning', 'periodik')" id="btn-cleaning-periodik" class="px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white text-slate-800 shadow-sm transition-all">Pekerjaan Periodik</button>
+                    <button onclick="switchSubTab('cleaning', 'kerusakan')" id="btn-cleaning-kerusakan" class="px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all">Laporan Kerusakan</button>
+                </div>
+            </div>
+
+            <!-- Form Cleaning Periodik -->
+            <div id="sub-cleaning-periodik" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <h3 class="text-lg font-semibold text-slate-800 border-b pb-2">Form Pekerjaan Periodik Cleaning</h3>
+                <form onsubmit="handleFormSubmit(event, 'Cleaning', 'Pekerjaan Periodik')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu</label>
+                            <input type="datetime-local" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="datetime">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Lokasi / Area</label>
+                            <input type="text" placeholder="Contoh: Toilet Lt. 2, Lobby Utama" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="lokasi">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi Pekerjaan</label>
+                            <textarea rows="3" placeholder="Jelaskan rincian pekerjaan cleaning yang dilakukan..." required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="deskripsi"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Upload Foto Before After -->
+                    <div class="mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Bukti Dokumentasi (Foto)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Foto Before -->
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50 transition-colors">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sebelum (Before)</p>
+                                <div id="preview-container-cleaning-periodik-before" class="hidden mb-3">
+                                    <img id="preview-cleaning-periodik-before" class="h-40 mx-auto object-cover rounded-lg border border-slate-200">
+                                </div>
+                                <input type="file" accept="image/*" id="file-cleaning-periodik-before" onchange="previewImage(this, 'preview-cleaning-periodik-before')" class="hidden" required>
+                                <label for="file-cleaning-periodik-before" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Pilih Foto Before
+                                </label>
+                            </div>
+                            <!-- Foto After -->
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50 transition-colors">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sesudah (After)</p>
+                                <div id="preview-container-cleaning-periodik-after" class="hidden mb-3">
+                                    <img id="preview-cleaning-periodik-after" class="h-40 mx-auto object-cover rounded-lg border border-slate-200">
+                                </div>
+                                <input type="file" accept="image/*" id="file-cleaning-periodik-after" onchange="previewImage(this, 'preview-cleaning-periodik-after')" class="hidden" required>
+                                <label for="file-cleaning-periodik-after" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Pilih Foto After
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Simpan Laporan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form Cleaning Kerusakan -->
+            <div id="sub-cleaning-kerusakan" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <h3 class="text-lg font-semibold text-slate-800 border-b pb-2">Form Laporan Kerusakan (Cleaning Area)</h3>
+                <form onsubmit="handleFormSubmit(event, 'Cleaning', 'Laporan Kerusakan')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu</label>
+                            <input type="datetime-local" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="datetime">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Item/Fasilitas Rusak</label>
+                            <input type="text" placeholder="Contoh: Kran Bocor, Floor Drain Tersumbat" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="item">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Lokasi Detail</label>
+                            <input type="text" placeholder="Contoh: Toilet Pria Lantai 1" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="lokasi">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tingkat Urgensi</label>
+                            <select required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="urgensi">
+                                <option value="Rendah">Rendah (Dapat Dikerjakan Nanti)</option>
+                                <option value="Sedang">Sedang (Perlu Perhatian Segera)</option>
+                                <option value="Tinggi">Tinggi (Darurat / Mengganggu Operasional)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi Kerusakan</label>
+                            <textarea rows="3" placeholder="Jelaskan kondisi kerusakan..." required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" name="deskripsi"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Upload Foto Before After -->
+                    <div class="mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Foto Kerusakan & Perbaikan Sementara</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sebelum (Kerusakan)</p>
+                                <div id="preview-container-cleaning-kerusakan-before" class="hidden mb-3">
+                                    <img id="preview-cleaning-kerusakan-before" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-cleaning-kerusakan-before" onchange="previewImage(this, 'preview-cleaning-kerusakan-before')" class="hidden" required>
+                                <label for="file-cleaning-kerusakan-before" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Kerusakan
+                                </label>
+                            </div>
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sesudah (Penanganan/Perbaikan)</p>
+                                <div id="preview-container-cleaning-kerusakan-after" class="hidden mb-3">
+                                    <img id="preview-cleaning-kerusakan-after" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-cleaning-kerusakan-after" onchange="previewImage(this, 'preview-cleaning-kerusakan-after')" class="hidden" required>
+                                <label for="file-cleaning-kerusakan-after" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Penanganan
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Laporkan Kerusakan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW 2: GARDENING -->
+        <section id="view-gardening" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="flower-2" class="text-emerald-600"></i> Operational Gardening
+                    </h2>
+                    <p class="text-slate-500 text-sm">Input kegiatan pemeliharaan tanaman dan laporan tanaman/fasilitas taman rusak.</p>
+                </div>
+                <div class="flex bg-slate-200 p-1 rounded-lg w-fit">
+                    <button onclick="switchSubTab('gardening', 'periodik')" id="btn-gardening-periodik" class="px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white text-slate-800 shadow-sm transition-all">Pekerjaan Periodik</button>
+                    <button onclick="switchSubTab('gardening', 'kerusakan')" id="btn-gardening-kerusakan" class="px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all">Laporan Kerusakan</button>
+                </div>
+            </div>
+
+            <!-- Form Gardening Periodik -->
+            <div id="sub-gardening-periodik" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <h3 class="text-lg font-semibold text-slate-800 border-b pb-2">Form Pekerjaan Periodik Gardening</h3>
+                <form onsubmit="handleFormSubmit(event, 'Gardening', 'Pekerjaan Periodik')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu</label>
+                            <input type="datetime-local" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="datetime">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Tanaman / Area Taman</label>
+                            <input type="text" placeholder="Contoh: Tamam Depan Gedung A, Rumput Japanese" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="lokasi">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi Aktivitas (Pemangkasan / Pemupukan / Penyiraman)</label>
+                            <textarea rows="3" placeholder="Rincian aktivitas perawatan..." required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="deskripsi"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Dokumentasi Taman</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sebelum (Before)</p>
+                                <div id="preview-container-gardening-periodik-before" class="hidden mb-3">
+                                    <img id="preview-gardening-periodik-before" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-gardening-periodik-before" onchange="previewImage(this, 'preview-gardening-periodik-before')" class="hidden" required>
+                                <label for="file-gardening-periodik-before" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Before
+                                </label>
+                            </div>
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sesudah (After)</p>
+                                <div id="preview-container-gardening-periodik-after" class="hidden mb-3">
+                                    <img id="preview-gardening-periodik-after" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-gardening-periodik-after" onchange="previewImage(this, 'preview-gardening-periodik-after')" class="hidden" required>
+                                <label for="file-gardening-periodik-after" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto After
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Simpan Laporan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form Gardening Kerusakan -->
+            <div id="sub-gardening-kerusakan" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <h3 class="text-lg font-semibold text-slate-800 border-b pb-2">Form Laporan Kerusakan Tanaman / Fasilitas Taman</h3>
+                <form onsubmit="handleFormSubmit(event, 'Gardening', 'Laporan Kerusakan')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu</label>
+                            <input type="datetime-local" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="datetime">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanaman / Fasilitas Rusak</label>
+                            <input type="text" placeholder="Contoh: Pohon Layu, Sprinkler Patah" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="item">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Lokasi Area</label>
+                            <input type="text" placeholder="Contoh: Taman Belakang Gedung B" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="lokasi">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi Kerusakan / Tindakan Dibutuhkan</label>
+                            <textarea rows="3" placeholder="Detail kondisi kerusakan..." required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="deskripsi"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Dokumentasi Kerusakan & Perbaikan</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sebelum (Kerusakan)</p>
+                                <div id="preview-container-gardening-kerusakan-before" class="hidden mb-3">
+                                    <img id="preview-gardening-kerusakan-before" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-gardening-kerusakan-before" onchange="previewImage(this, 'preview-gardening-kerusakan-before')" class="hidden" required>
+                                <label for="file-gardening-kerusakan-before" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Kerusakan
+                                </label>
+                            </div>
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sesudah (Penanganan)</p>
+                                <div id="preview-container-gardening-kerusakan-after" class="hidden mb-3">
+                                    <img id="preview-gardening-kerusakan-after" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-gardening-kerusakan-after" onchange="previewImage(this, 'preview-gardening-kerusakan-after')" class="hidden" required>
+                                <label for="file-gardening-kerusakan-after" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Penanganan
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Laporkan Kerusakan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW 3: PEST CONTROL -->
+        <section id="view-pestcontrol" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="bug" class="text-purple-600"></i> Operational Pest Control
+                    </h2>
+                    <p class="text-slate-500 text-sm">Input perlakuan pengendalian hama, Cold Fogging & Hot Fogging beserta dosis campuran chemical.</p>
+                </div>
+                <div class="flex bg-slate-200 p-1 rounded-lg w-fit overflow-x-auto">
+                    <button onclick="switchSubTab('pestcontrol', 'periodik')" id="btn-pestcontrol-periodik" class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white text-slate-800 shadow-sm transition-all whitespace-nowrap">Pekerjaan Periodik</button>
+                    <button onclick="switchSubTab('pestcontrol', 'coldfogging')" id="btn-pestcontrol-coldfogging" class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap">Cold Fogging</button>
+                    <button onclick="switchSubTab('pestcontrol', 'hotfogging')" id="btn-pestcontrol-hotfogging" class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap">Hot Fogging</button>
+                </div>
+            </div>
+
+            <!-- Form Pest Control Periodik -->
+            <div id="sub-pestcontrol-periodik" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <h3 class="text-lg font-semibold text-slate-800 border-b pb-2">Form Pekerjaan Periodik Pest Control (Inspeksi / Baiting / Spraying)</h3>
+                <form onsubmit="handleFormSubmit(event, 'Pest Control', 'Pekerjaan Periodik')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu</label>
+                            <input type="datetime-local" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="datetime">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Lokasi Area Inspeksi/Perlakuan</label>
+                            <input type="text" placeholder="Contoh: Dapur, Area Basement, Restoran" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="lokasi">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi & Temuan Hama</label>
+                            <textarea rows="3" placeholder="Jelaskan jenis hama yang ditemukan (misal: kecoa, tikus) dan tindakan yang dilakukan..." required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="deskripsi"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Dokumentasi Temuan & Perlakuan</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sebelum (Before / Temuan)</p>
+                                <div id="preview-container-pestcontrol-periodik-before" class="hidden mb-3">
+                                    <img id="preview-pestcontrol-periodik-before" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-pestcontrol-periodik-before" onchange="previewImage(this, 'preview-pestcontrol-periodik-before')" class="hidden" required>
+                                <label for="file-pestcontrol-periodik-before" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Before
+                                </label>
+                            </div>
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sesudah (After / Penanganan)</p>
+                                <div id="preview-container-pestcontrol-periodik-after" class="hidden mb-3">
+                                    <img id="preview-pestcontrol-periodik-after" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-pestcontrol-periodik-after" onchange="previewImage(this, 'preview-pestcontrol-periodik-after')" class="hidden" required>
+                                <label for="file-pestcontrol-periodik-after" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto After
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Simpan Laporan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form Cold Fogging (ULV) -->
+            <div id="sub-pestcontrol-coldfogging" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="text-lg font-semibold text-slate-800">Form Laporan Cold Fogging (ULV - Indoor / Outdoor Mist)</h3>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded">Pelarut: Air / Water Base</span>
+                </div>
+                <form onsubmit="handleFormSubmit(event, 'Pest Control', 'Cold Fogging')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu Operasional</label>
+                            <input type="datetime-local" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="datetime">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Area Dilakukan Fogging</label>
+                            <input type="text" placeholder="Contoh: Corridor Ruangan, Kantor Lantai 3" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="lokasi">
+                        </div>
+                    </div>
+
+                    <!-- Kalkulator Chemical Cold Fogging -->
+                    <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-4 space-y-4">
+                        <h4 class="text-sm font-bold text-purple-900 flex items-center gap-2">
+                            <i data-lucide="flask-conical" class="w-4 h-4 text-purple-600"></i> Dosis & Kalkulator Dilusi Campuran Chemical
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Chemical</label>
+                                <input type="text" placeholder="Contoh: Cypermethrin / Delta 25EC" required class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:outline-none" name="chemical_name" id="cold-chemical-name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Total Vol. Campuran (Liter)</label>
+                                <input type="number" step="0.5" min="0.5" value="5" required class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:outline-none" name="total_volume" id="cold-total-vol" oninput="calculateDilution('cold')">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Rasio Dilusi (Chemical : Air)</label>
+                                <select class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:outline-none" name="rasio_dilusi" id="cold-ratio" onchange="calculateDilution('cold')">
+                                    <option value="1:20">1 : 20 (Dosis Tinggi)</option>
+                                    <option value="1:50" selected>1 : 50 (Dosis Standar)</option>
+                                    <option value="1:100">1 : 100 (Dosis Ringan / Pemeliharaan)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Hasil Perhitungan Auto -->
+                        <div class="bg-white p-3 rounded-lg border border-purple-100 flex flex-wrap justify-between items-center gap-2 text-xs font-medium">
+                            <span class="text-slate-600">Rincian Komposisi Formula:</span>
+                            <div class="space-x-4">
+                                <span class="text-purple-700">Chemical murni: <strong id="cold-res-chem">98 ml</strong></span>
+                                <span class="text-blue-700">Air Pelarut: <strong id="cold-res-solvent">4.90 L</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Catatan Tambahan</label>
+                        <textarea rows="2" placeholder="Informasi cuaca, kendala, atau alat ULV yang digunakan..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="deskripsi"></textarea>
+                    </div>
+
+                    <!-- Upload Foto -->
+                    <div class="mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Dokumentasi Pekerjaan Cold Fogging</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Persiapan / Campuran Chemical</p>
+                                <div id="preview-container-pestcontrol-coldfogging-before" class="hidden mb-3">
+                                    <img id="preview-pestcontrol-coldfogging-before" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-pestcontrol-coldfogging-before" onchange="previewImage(this, 'preview-pestcontrol-coldfogging-before')" class="hidden" required>
+                                <label for="file-pestcontrol-coldfogging-before" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Persiapan
+                                </label>
+                            </div>
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Pelaksanaan Fogging</p>
+                                <div id="preview-container-pestcontrol-coldfogging-after" class="hidden mb-3">
+                                    <img id="preview-pestcontrol-coldfogging-after" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-pestcontrol-coldfogging-after" onchange="previewImage(this, 'preview-pestcontrol-coldfogging-after')" class="hidden" required>
+                                <label for="file-pestcontrol-coldfogging-after" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Aplikasi
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Simpan Laporan Cold Fogging
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form Hot Fogging (Thermal) -->
+            <div id="sub-pestcontrol-hotfogging" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="text-lg font-semibold text-slate-800">Form Laporan Hot Fogging (Thermal Fogging Outdoor)</h3>
+                    <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded">Pelarut: Solar / Diesel / White Oil</span>
+                </div>
+                <form onsubmit="handleFormSubmit(event, 'Pest Control', 'Hot Fogging')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu Operasional</label>
+                            <input type="datetime-local" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="datetime">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Area Terbuka / Drainage Fogging</label>
+                            <input type="text" placeholder="Contoh: Area Saluran Air, Perbatasan Pagar Luar" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="lokasi">
+                        </div>
+                    </div>
+
+                    <!-- Kalkulator Chemical Hot Fogging -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4 space-y-4">
+                        <h4 class="text-sm font-bold text-amber-900 flex items-center gap-2">
+                            <i data-lucide="flame" class="w-4 h-4 text-amber-600"></i> Dosis & Kalkulator Campuran Solar (Hot Fogging)
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Insektisida / Chemical</label>
+                                <input type="text" placeholder="Contoh: Permethrin 200EC / Macho" required class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:outline-none" name="chemical_name" id="hot-chemical-name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Total Campuran Solar + Insektisida (Liter)</label>
+                                <input type="number" step="0.5" min="0.5" value="10" required class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:outline-none" name="total_volume" id="hot-total-vol" oninput="calculateDilution('hot')">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Rasio Dilusi (Chemical : Solar)</label>
+                                <select class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:outline-none" name="rasio_dilusi" id="hot-ratio" onchange="calculateDilution('hot')">
+                                    <option value="1:15">1 : 15 (Target Nyamuk Pekat)</option>
+                                    <option value="1:20" selected>1 : 20 (Rasio Standar Thermal Fogging)</option>
+                                    <option value="1:30">1 : 30 (Rasio Ringan / Preventif)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Hasil Perhitungan Auto -->
+                        <div class="bg-white p-3 rounded-lg border border-amber-200 flex flex-wrap justify-between items-center gap-2 text-xs font-medium">
+                            <span class="text-slate-600">Rincian Komposisi Solar & Chemical:</span>
+                            <div class="space-x-4">
+                                <span class="text-amber-800">Insektisida: <strong id="hot-res-chem">476 ml</strong></span>
+                                <span class="text-orange-700">Pelarut Solar/Diesel: <strong id="hot-res-solvent">9.52 L</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Catatan Keamanan & Angin</label>
+                        <textarea rows="2" placeholder="Kondisi Arah Angin, Evakuasi Penghuni Area, dll..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" name="deskripsi"></textarea>
+                    </div>
+
+                    <!-- Upload Foto -->
+                    <div class="mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Dokumentasi Hot Fogging</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Sebelum / Pencampuran Solar</p>
+                                <div id="preview-container-pestcontrol-hotfogging-before" class="hidden mb-3">
+                                    <img id="preview-pestcontrol-hotfogging-before" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-pestcontrol-hotfogging-before" onchange="previewImage(this, 'preview-pestcontrol-hotfogging-before')" class="hidden" required>
+                                <label for="file-pestcontrol-hotfogging-before" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Persiapan
+                                </label>
+                            </div>
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto Pengasapan / Thermal Fogging</p>
+                                <div id="preview-container-pestcontrol-hotfogging-after" class="hidden mb-3">
+                                    <img id="preview-pestcontrol-hotfogging-after" class="h-40 mx-auto object-cover rounded-lg border">
+                                </div>
+                                <input type="file" accept="image/*" id="file-pestcontrol-hotfogging-after" onchange="previewImage(this, 'preview-pestcontrol-hotfogging-after')" class="hidden" required>
+                                <label for="file-pestcontrol-hotfogging-after" class="inline-flex items-center gap-2 cursor-pointer bg-white px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium shadow-sm hover:bg-slate-100">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> Upload Foto Pengasapan
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2 shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Simpan Laporan Hot Fogging
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW 4: DASHBOARD & SUMMARY -->
+        <section id="view-dashboard" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="text-blue-600"></i> Dashboard & Riwayat Laporan Operasional
+                    </h2>
+                    <p class="text-slate-500 text-sm">Rekapitulasi seluruh laporan pekerjaan fasilitas yang telah dimasukkan.</p>
+                </div>
+                <div class="flex gap-2 no-print">
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Widgets -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="p-3 bg-blue-100 text-blue-600 rounded-lg">
+                        <i data-lucide="sparkles" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium uppercase">Cleaning Logs</p>
+                        <h4 id="stat-cleaning-count" class="text-2xl font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="p-3 bg-emerald-100 text-emerald-600 rounded-lg">
+                        <i data-lucide="flower-2" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium uppercase">Gardening Logs</p>
+                        <h4 id="stat-gardening-count" class="text-2xl font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="p-3 bg-purple-100 text-purple-600 rounded-lg">
+                        <i data-lucide="bug" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium uppercase">Pest Control Logs</p>
+                        <h4 id="stat-pest-count" class="text-2xl font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="p-3 bg-amber-100 text-amber-600 rounded-lg">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium uppercase">Total Kerusakan</p>
+                        <h4 id="stat-damage-count" class="text-2xl font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center no-print">
+                <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <select id="filter-category" onchange="renderReports()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                        <option value="ALL">Semua Kategori Operasional</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Gardening">Gardening</option>
+                        <option value="Pest Control">Pest Control</option>
+                    </select>
+                    <select id="filter-type" onchange="renderReports()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                        <option value="ALL">Semua Sub-Menu / Tipe</option>
+                        <option value="Pekerjaan Periodik">Pekerjaan Periodik</option>
+                        <option value="Laporan Kerusakan">Laporan Kerusakan</option>
+                        <option value="Cold Fogging">Cold Fogging</option>
+                        <option value="Hot Fogging">Hot Fogging</option>
+                    </select>
+                </div>
+                <div class="w-full md:w-72">
+                    <div class="relative">
+                        <input type="text" id="filter-search" onkeyup="renderReports()" placeholder="Cari lokasi, deskripsi..." class="w-full border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List / Grid Laporan -->
+            <div id="reports-list-container" class="space-y-4">
+                <!-- Records render here dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto no-print">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+            &copy; Facility Management Operational System - Cleaning, Gardening & Pest Control.
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // State Storage Laporan
+        let reportsData = [
+            {
+                id: 1,
+                category: 'Cleaning',
+                subType: 'Pekerjaan Periodik',
+                datetime: '2026-11-10 09:00',
+                lokasi: 'Toilet Utama Lobby Lt. 1',
+                deskripsi: 'Pembersihan kerak lantai marmer dan sanitasi urinoir.',
+                item: '-',
+                urgensi: '-',
+                chemicalInfo: null,
+                imgBefore: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=400&q=80',
+                imgAfter: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=400&q=80'
+            },
+            {
+                id: 2,
+                category: 'Pest Control',
+                subType: 'Cold Fogging',
+                datetime: '2026-11-11 06:30',
+                lokasi: 'Kantin Karyawan & Basement',
+                deskripsi: 'Pengasapan dingin (ULV) pencegahan kecoa dan nyamuk indoor.',
+                item: '-',
+                urgensi: '-',
+                chemicalInfo: {
+                    nama: 'Cypermethrin 10EC',
+                    volume: '5 Liter',
+                    rasio: '1:50',
+                    dosisChem: '98 ml',
+                    dosisSolvent: '4.90 L (Air)'
+                },
+                imgBefore: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=400&q=80',
+                imgAfter: 'https://images.unsplash.com/photo-1617886903355-9354bb57751f?auto=format&fit=crop&w=400&q=80'
+            }
+        ];
+
+        // Init Lucide Icons
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            calculateDilution('cold');
+            calculateDilution('hot');
+            renderReports();
+        });
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Switch Category View (Cleaning, Gardening, Pest Control, Dashboard)
+        function switchCategory(cat) {
+            const categories = ['cleaning', 'gardening', 'pestcontrol', 'dashboard'];
+            
+            categories.forEach(c => {
+                const view = document.getElementById(`view-${c}`);
+                const nav = document.getElementById(`nav-${c}`);
+                if (c === cat) {
+                    view.classList.remove('hidden');
+                    if(nav) {
+                        nav.classList.add('bg-blue-50', 'text-blue-700');
+                        nav.classList.remove('text-slate-600');
+                    }
+                } else {
+                    view.classList.add('hidden');
+                    if(nav) {
+                        nav.classList.remove('bg-blue-50', 'text-blue-700');
+                        nav.classList.add('text-slate-600');
+                    }
+                }
+            });
+
+            if(cat === 'dashboard') {
+                renderReports();
+            }
+        }
+
+        // Switch Sub Tab
+        function switchSubTab(cat, sub) {
+            let tabs = [];
+            if (cat === 'cleaning' || cat === 'gardening') {
+                tabs = ['periodik', 'kerusakan'];
+            } else if (cat === 'pestcontrol') {
+                tabs = ['periodik', 'coldfogging', 'hotfogging'];
+            }
+
+            tabs.forEach(t => {
+                const subEl = document.getElementById(`sub-${cat}-${t}`);
+                const btnEl = document.getElementById(`btn-${cat}-${t}`);
+                if (t === sub) {
+                    subEl.classList.remove('hidden');
+                    btnEl.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+                    btnEl.classList.remove('text-slate-600');
+                } else {
+                    subEl.classList.add('hidden');
+                    btnEl.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+                    btnEl.classList.add('text-slate-600');
+                }
+            });
+        }
+
+        // Preview Image Helper
+        function previewImage(input, previewId) {
+            const file = input.files[0];
+            const previewImg = document.getElementById(previewId);
+            const container = document.getElementById(`container-${previewId}`);
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    container.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Kalkulator Dilusi Pest Control
+        function calculateDilution(type) {
+            const totalVol = parseFloat(document.getElementById(`${type}-total-vol`).value) || 0;
+            const ratioVal = document.getElementById(`${type}-ratio`).value; // e.g. "1:50"
+            const parts = ratioVal.split(':').map(Number);
+            
+            const totalParts = parts[0] + parts[1]; // e.g. 1 + 50 = 51
+            
+            // Chem = (1 / totalParts) * totalVol (in Liters) -> * 1000 for ML
+            const chemML = Math.round((parts[0] / totalParts) * totalVol * 1000);
+            const solventL = (totalVol - (chemML / 1000)).toFixed(2);
+
+            document.getElementById(`${type}-res-chem`).innerText = `${chemML} ml`;
+            document.getElementById(`${type}-res-solvent`).innerText = `${solventL} L (${type === 'cold' ? 'Air' : 'Solar'})`;
+        }
+
+        // Form Submission Handler
+        function handleFormSubmit(event, category, subType) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            let chemInfo = null;
+
+            if (subType === 'Cold Fogging' || subType === 'Hot Fogging') {
+                const typeKey = subType === 'Cold Fogging' ? 'cold' : 'hot';
+                const chemName = document.getElementById(`${typeKey}-chemical-name`).value || 'Chemical Standar';
+                const totalVol = document.getElementById(`${typeKey}-total-vol`).value;
+                const ratio = document.getElementById(`${typeKey}-ratio`).value;
+                const chemDose = document.getElementById(`${typeKey}-res-chem`).innerText;
+                const solventDose = document.getElementById(`${typeKey}-res-solvent`).innerText;
+
+                chemInfo = {
+                    nama: chemName,
+                    volume: `${totalVol} Liter`,
+                    rasio: ratio,
+                    dosisChem: chemDose,
+                    dosisSolvent: solventDose
+                };
+            }
+
+            // Get uploaded photos (Base64 for preview in dashboard)
+            const beforeInput = form.querySelector('input[id*="before"]');
+            const afterInput = form.querySelector('input[id*="after"]');
+
+            let beforeSrc = 'https://placehold.co/400x300/e2e8f0/475569?text=Foto+Before';
+            let afterSrc = 'https://placehold.co/400x300/e2e8f0/475569?text=Foto+After';
+
+            const beforeImgElem = form.querySelector('img[id*="before"]');
+            const afterImgElem = form.querySelector('img[id*="after"]');
+
+            if (beforeImgElem && beforeImgElem.src) beforeSrc = beforeImgElem.src;
+            if (afterImgElem && afterImgElem.src) afterSrc = afterImgElem.src;
+
+            const newReport = {
+                id: Date.now(),
+                category: category,
+                subType: subType,
+                datetime: formData.get('datetime') ? formData.get('datetime').replace('T', ' ') : new Date().toLocaleString('id-ID'),
+                lokasi: formData.get('lokasi') || '-',
+                deskripsi: formData.get('deskripsi') || '-',
+                item: formData.get('item') || '-',
+                urgensi: formData.get('urgensi') || '-',
+                chemicalInfo: chemInfo,
+                imgBefore: beforeSrc,
+                imgAfter: afterSrc
+            };
+
+            reportsData.unshift(newReport);
+            
+            showNotification(`Laporan ${category} (${subType}) Berhasil Disimpan!`);
+            
+            // Reset form
+            form.reset();
+            // Hide Image Preview Containers
+            const containers = form.querySelectorAll('[id^="preview-container-"]');
+            containers.forEach(c => c.classList.add('hidden'));
+
+            // Redirect to Dashboard
+            switchCategory('dashboard');
+        }
+
+        // Show Notification Toast
+        function showNotification(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl text-sm flex items-center gap-2 pointer-events-auto transition-opacity duration-300";
+            toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> ${msg}`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Render Dashboard & Report List
+        function renderReports() {
+            const container = document.getElementById('reports-list-container');
+            const catFilter = document.getElementById('filter-category').value;
+            const typeFilter = document.getElementById('filter-type').value;
+            const searchFilter = document.getElementById('filter-search').value.toLowerCase();
+
+            // Calculate Stats
+            const cleaningCount = reportsData.filter(r => r.category === 'Cleaning').length;
+            const gardeningCount = reportsData.filter(r => r.category === 'Gardening').length;
+            const pestCount = reportsData.filter(r => r.category === 'Pest Control').length;
+            const damageCount = reportsData.filter(r => r.subType === 'Laporan Kerusakan').length;
+
+            document.getElementById('stat-cleaning-count').innerText = cleaningCount;
+            document.getElementById('stat-gardening-count').innerText = gardeningCount;
+            document.getElementById('stat-pest-count').innerText = pestCount;
+            document.getElementById('stat-damage-count').innerText = damageCount;
+
+            // Filter logic
+            const filtered = reportsData.filter(r => {
+                const matchCat = catFilter === 'ALL' || r.category === catFilter;
+                const matchType = typeFilter === 'ALL' || r.subType === typeFilter;
+                const matchSearch = r.lokasi.toLowerCase().includes(searchFilter) || 
+                                    r.deskripsi.toLowerCase().includes(searchFilter) ||
+                                    r.category.toLowerCase().includes(searchFilter);
+                return matchCat && matchType && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-xl border border-slate-200 text-center text-slate-400">
+                        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
+                        <p class="font-medium">Tidak ada data laporan yang cocok.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = filtered.map(r => {
+                let categoryBadge = '';
+                if(r.category === 'Cleaning') categoryBadge = 'bg-blue-100 text-blue-800';
+                else if(r.category === 'Gardening') categoryBadge = 'bg-emerald-100 text-emerald-800';
+                else categoryBadge = 'bg-purple-100 text-purple-800';
+
+                let urgencyBadge = '';
+                if(r.urgensi === 'Tinggi') urgencyBadge = '<span class="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded font-semibold">Urgensi: Tinggi</span>';
+                else if(r.urgensi === 'Sedang') urgencyBadge = '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-semibold">Urgensi: Sedang</span>';
+                else if(r.urgensi === 'Rendah') urgencyBadge = '<span class="bg-slate-100 text-slate-800 text-xs px-2 py-0.5 rounded font-semibold">Urgensi: Rendah</span>';
+
+                return `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="flex flex-wrap justify-between items-start gap-2 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="${categoryBadge} text-xs font-bold px-2.5 py-1 rounded-md">${r.category}</span>
+                            <span class="bg-slate-100 text-slate-700 text-xs font-medium px-2.5 py-1 rounded-md">${r.subType}</span>
+                            ${urgencyBadge}
+                        </div>
+                        <span class="text-xs text-slate-400 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3.5 h-3.5"></i> ${r.datetime}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="md:col-span-2 space-y-2">
+                            <p><strong class="text-slate-700">Lokasi / Area:</strong> ${r.lokasi}</p>
+                            ${r.item !== '-' ? `<p><strong class="text-slate-700">Item Fasilitas:</strong> ${r.item}</p>` : ''}
+                            <p class="text-slate-600"><strong class="text-slate-700">Deskripsi:</strong> ${r.deskripsi}</p>
+                            
+                            ${r.chemicalInfo ? `
+                                <div class="mt-3 bg-purple-50 p-3 rounded-lg border border-purple-100 text-xs space-y-1">
+                                    <p class="font-bold text-purple-900 flex items-center gap-1">
+                                        <i data-lucide="beaker" class="w-3.5 h-3.5"></i> Formulasi Chemical (${r.subType})
+                                    </p>
+                                    <div class="grid grid-cols-2 gap-2 text-purple-800">
+                                        <div>Chemical: <strong>${r.chemicalInfo.nama}</strong></div>
+                                        <div>Volume: <strong>${r.chemicalInfo.volume}</strong></div>
+                                        <div>Rasio: <strong>${r.chemicalInfo.rasio}</strong></div>
+                                        <div>Dosis Chem: <strong>${r.chemicalInfo.dosisChem}</strong></div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Gambar Before & After -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Sebelum</span>
+                                <img src="${r.imgBefore}" class="w-full h-24 object-cover rounded-lg border border-slate-200">
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Sesudah</span>
+                                <img src="${r.imgAfter}" class="w-full h-24 object-cover rounded-lg border border-slate-200">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
